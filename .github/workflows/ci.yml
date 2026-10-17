@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: docker compose up -d --build --wait
+      - run: npm test
+        env:
+          BASE_URL: http://localhost:8090
+      - if: failure()
+        run: docker compose logs
