@@ -1,0 +1,19 @@
+services:
+  pocketbase:
+    build: .
+    ports:
+      - "${PUERTO:-8090}:8090"
+    environment:
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@streamflix.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-cambiar-esta-clave}
+      EDITOR_EMAIL: ${EDITOR_EMAIL:-editor@streamflix.local}
+      EDITOR_PASSWORD: ${EDITOR_PASSWORD:-editor-2026}
+    volumes:
+      - datos:/pb/pb_data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8090/api/health"]
+      interval: 3s
+      retries: 20
+
+volumes:
+  datos:
