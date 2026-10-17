@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamFlix - Películas y series</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="pocketbase.umd.js"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">StreamFlix</div>
+            <div class="header-controls">
+                <div class="search-box">
+                    <input type="search" id="buscar" placeholder="Buscar por título, género o actor" aria-label="Buscar">
+                </div>
+                <button class="admin-btn" id="botonEditor">Editor</button>
+            </div>
+        </div>
+    </header>
+
+    <nav class="nav-bar">
+        <div class="container">
+            <button class="nav-item active" data-filtro="todo">Todo</button>
+            <button class="nav-item" data-filtro="peliculas">Películas</button>
+            <button class="nav-item" data-filtro="series">Series</button>
+            <button class="nav-item" data-filtro="generos">Géneros</button>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div id="cargando" class="loading"><div class="spinner"></div><p>Cargando contenido...</p></div>
+            <p id="aviso" class="aviso" role="status" hidden></p>
+
+            <section id="seccionPeliculas" class="content-section">
+                <h2 class="section-title">Películas</h2>
+                <div id="gridPeliculas" class="content-grid"></div>
+            </section>
+            <section id="seccionSeries" class="content-section">
+                <h2 class="section-title">Series</h2>
+                <div id="gridSeries" class="content-grid"></div>
+            </section>
+            <section id="seccionGeneros" class="content-section" hidden>
+                <h2 class="section-title">Géneros</h2>
+                <div id="gridGeneros" class="genres-grid"></div>
+            </section>
+            <div id="vacio" class="empty-state" hidden>
+                <h3>No se encontraron resultados</h3>
+                <p>Pruebe con otro título, género o actor.</p>
+            </div>
+        </div>
+    </main>
+
+    <div id="modalLogin" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Acceso de editores</h2>
+            <form id="formLogin">
+                <div class="form-group"><label for="loginEmail">Correo</label><input type="email" id="loginEmail" required autocomplete="username"></div>
+                <div class="form-group"><label for="loginClave">Contraseña</label><input type="password" id="loginClave" required autocomplete="current-password"></div>
+                <p class="error-form" id="errorLogin"></p>
+                <button type="submit" class="btn-primary">Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalAgregar" class="modal">
+        <div class="modal-content large">
+            <span class="close">&times;</span>
+            <h2>Agregar contenido</h2>
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="pelicula">Película</button>
+                <button class="tab-btn" data-tab="serie">Serie</button>
+                <button class="tab-btn" data-tab="genero">Género</button>
+                <button class="tab-btn" data-tab="actor">Actor</button>
+            </div>
+
+            <form id="form-pelicula" class="content-form active" data-coleccion="peliculas">
+                <div class="form-row">
+                    <div class="form-group"><label>Título<input name="titulo" required maxlength="120"></label></div>
+                    <div class="form-group"><label>Estreno<input type="date" name="estreno" required></label></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Duración (min)<input type="number" name="duracion_min" min="1" max="600"></label></div>
+                    <div class="form-group"><label>Premios<input name="premios" maxlength="200"></label></div>
+                </div>
+                <div class="form-group"><label>Sinopsis<textarea name="sinopsis" maxlength="600" rows="3"></textarea></label></div>
+                <div class="form-group"><label>Póster (JPG, PNG o WebP, hasta 5 MB)<input type="file" name="poster" accept="image/jpeg,image/png,image/webp"></label></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Reparto<select name="reparto" multiple class="select-actores"></select></label></div>
+                    <div class="form-group"><label>Géneros<select name="generos" multiple class="select-generos"></select></label></div>
+                </div>
+                <button type="submit" class="btn-primary">Agregar película</button>
+            </form>
+
+            <form id="form-serie" class="content-form" data-coleccion="series">
+                <div class="form-row">
+                    <div class="form-group"><label>Título<input name="titulo" required maxlength="120"></label></div>
+                    <div class="form-group"><label>Estreno<input type="date" name="estreno" required></label></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Temporadas<input type="number" name="temporadas" min="1" max="60" value="1" required></label></div>
+                    <div class="form-group"><label>Premios<input name="premios" maxlength="200"></label></div>
+                </div>
+                <div class="form-group"><label>Sinopsis<textarea name="sinopsis" maxlength="600" rows="3"></textarea></label></div>
+                <div class="form-group"><label>Póster (JPG, PNG o WebP, hasta 5 MB)<input type="file" name="poster" accept="image/jpeg,image/png,image/webp"></label></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Reparto<select name="reparto" multiple class="select-actores"></select></label></div>
+                    <div class="form-group"><label>Géneros<select name="generos" multiple class="select-generos"></select></label></div>
+                </div>
+                <button type="submit" class="btn-primary">Agregar serie</button>
+            </form>
+
+            <form id="form-genero" class="content-form" data-coleccion="generos">
+                <div class="form-group"><label>Nombre<input name="nombre" required maxlength="40"></label></div>
+                <button type="submit" class="btn-primary">Agregar género</button>
+            </form>
+
+            <form id="form-actor" class="content-form" data-coleccion="actores">
+                <div class="form-row">
+                    <div class="form-group"><label>Nombre<input name="nombre" required maxlength="80"></label></div>
+                    <div class="form-group"><label>País<input name="pais" maxlength="60"></label></div>
+                </div>
+                <div class="form-group"><label>Fecha de nacimiento<input type="date" name="nacimiento"></label></div>
+                <button type="submit" class="btn-primary">Agregar actor</button>
+            </form>
+            <p class="error-form" id="errorAgregar"></p>
+        </div>
+    </div>
+
+    <div id="modalDetalle" class="modal">
+        <div class="modal-content large">
+            <span class="close">&times;</span>
+            <div id="detalle"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
